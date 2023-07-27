@@ -77,6 +77,22 @@ export class EnviarCorreoService {
     )
   }
 
+  addGestion(sp:string,idInterno: string,crm:string, leyendaCRM: string,cuenta: string,
+     usuario:string, gestion:any,  contacto:string):Observable<any>{
+
+    var resultado = 'ENVIO CORREO'
+    var payload = this.auth.mkpayload({
+
+      query: `EXEC ECRM_${crm}.[dbo].[__${sp}] ${idInterno},"${leyendaCRM}","${cuenta}","${gestion}","${resultado}","${resultado}",${usuario},"${contacto}"`
+
+    })
+    return this.http.post<any>(`${this.api}/apiNEO/query`, {payload})
+    .pipe(
+      tap(),
+      catchError(this.handleError('Error al guardar la gestion'))
+    )
+  }
+
   getHTMLContent(){
     return this.http.get('MEDIOSALTERNOS/src/app/modules/administracion/plantillas/crm35-correo-descuento1/crm35-correo-descuento1.component.html', {responseType: 'text'});
   }

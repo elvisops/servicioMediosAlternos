@@ -43,6 +43,8 @@ export class EnviarCorreoComponent implements OnInit {
   usuario: string = '';
   id: string = '';
   contacto: string = '';
+  cuenta:string = '';
+  sp:string = '';
 
   //variables de los metodos que preparan templates y correos
   Tsql: string = '';
@@ -50,6 +52,7 @@ export class EnviarCorreoComponent implements OnInit {
   arreglo: any[] = [];
   arregloPlantilla: any[] = [];
   opcionPlantillaId: number | string = 0;
+  opcionPlantillaTexto: string = '';
   opcionPlantilla: any;
   Plantillas: any[] = [];
   ListaTemplates: ListarTemplates[] = [];
@@ -68,6 +71,7 @@ export class EnviarCorreoComponent implements OnInit {
   ngOnInit() {
     this.TraerSql();
     this.ListarTemplates();
+    this.ListarDatosEnvio()
   }
 
   //Listar sql, trae el query que se utilizara para traer datos del cliente segun la campaña
@@ -103,6 +107,9 @@ export class EnviarCorreoComponent implements OnInit {
       var respuesta = this.auth.desencriptar(r.response);
       respuesta = JSON.parse(respuesta);
       respuesta = respuesta[0];
+      // aqui
+// console.log(respuesta)
+      this.cuenta = respuesta.cuenta;
       this.nombre = respuesta.nombre;
       this.saldo = respuesta.saldo;
     });
@@ -202,6 +209,8 @@ export class EnviarCorreoComponent implements OnInit {
         contador++;
       }
     }
+
+    
   }
 
   OnOpcionChange2() {
@@ -210,6 +219,13 @@ export class EnviarCorreoComponent implements OnInit {
     } else {
       this.hidden = true;
     }
+    const opcionSeleccionada = this.Plantillas.find(opcion => opcion.TEMPLATE === this.opcionPlantilla);
+    if (opcionSeleccionada) {
+      // Actualizar el texto seleccionado
+      this.opcionPlantillaTexto = opcionSeleccionada.OPCION;
+      // console.log('Texto seleccionado:', this.opcionPlantillaTexto);
+    }
+
     this.createComponent();
   }
 
@@ -256,6 +272,9 @@ export class EnviarCorreoComponent implements OnInit {
     this.service.GetDatosEnvio(this.opcionPlantilla).subscribe((r) => {
       var data = this.auth.desencriptar(r.data);
       this.ListarDatosDeEnvio = JSON.parse(data);
+      var procedimiento = JSON.parse(data)
+      this.sp = procedimiento[0].sp
+      // console.log(this.sp)
       this.enviarCorreo();
     });
   }
@@ -312,5 +331,31 @@ export class EnviarCorreoComponent implements OnInit {
         this.deshabilitarBoton = false;
       }
     );
+    // alert(this.cuenta)
+    this.guardarGestion()
+  }
+
+  guardarGestion(){
+    var crm
+    if (this.crm == '0014') {
+      crm = '14-B&A Unicomer'
+    }else{
+      crm = '35-B&A Davivenda'
+    }
+
+    var tipo
+    var gestion 
+    if (this.tipo == "1") {
+      tipo = "Correo"
+      gestion = `Se envio ${this.opcionPlantillaTexto} al correo: ${this.contacto}`
+      this.contacto = " "
+      
+    }else{
+      tipo = "SMS"
+    }
+
+    this.service.addGestion(this.sp,this.id,this.crm, crm, this.cuenta,  this.usuario, gestion,this.contacto).subscribe((r) => {
+
+    });
   }
 }
